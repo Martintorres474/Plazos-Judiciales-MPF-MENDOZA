@@ -2,6 +2,9 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>Cómputo Judicial MPF</title>
     <style>
         /* ESTILOS UNIFICADOS */
@@ -120,25 +123,11 @@
     <section class="card config-card">
         <details>
             <summary style="font-size: 1.1em; font-weight: bold; cursor: pointer; color: #1A3B5C; user-select: none;">
-                ⚙️ Administrar Días Inhábiles / Feriados
+                📅 Consultar Días Inhábiles / Feriados
             </summary>
-            
             <div style="margin-top: 15px; border-top: 1px solid #eee; padding-top: 15px;">
-                <label>Agregar nuevo día inhábil:</label>
-                <div style="display: flex; gap: 10px; margin-top: 5px;">
-                    <input type="date" id="nuevoFeriado" style="margin: 0;">
-                    <button class="btn-main" onclick="agregarFeriado()" style="margin: 0; white-space: nowrap;">Agregar</button>
-                </div>
-
-                <div style="margin-top: 15px;">
-                    <button class="btn-sec" onclick="restablecerFeriados()" style="margin: 0; width: 100%;">
-                        Restablecer Lista Oficial
-                    </button>
-                </div>
-
-                <p style="margin-bottom: 5px; margin-top: 15px; font-weight: bold;">Días registrados:</p>
-                <ul id="listaFeriados" style="max-height: 200px; overflow-y: auto; background: #fdfdfd; border: 1px solid #ddd; padding: 10px 25px; border-radius: 5px;">
-                    </ul>
+                <p>Calendario de consulta. Las fechas solo pueden actualizarse desde el repositorio de GitHub.</p>
+                <ul id="listaFeriados" style="max-height: 200px; overflow-y: auto; background: #fdfdfd; border: 1px solid #ddd; padding: 10px 25px; border-radius: 5px;"></ul>
             </div>
         </details>
     </section>
@@ -179,7 +168,11 @@ const feriadosBase = [
     "2027-12-24", "2027-12-25", "2027-12-31"
 ];
 
-let feriados = JSON.parse(localStorage.getItem("feriados")) || [...feriadosBase];
+// Los feriados oficiales siempre se toman de esta versión publicada en GitHub.
+// Solo las personalizaciones del usuario se guardan en el navegador.
+// Lista única publicada por el administrador en GitHub.
+// No se consultan ni guardan feriados en el almacenamiento local.
+const feriados = [...new Set(feriadosBase)].sort();
 
 // ======================
 // FUNCIONES GENERALES
@@ -293,49 +286,17 @@ function calcularDetencion() {
 }
 
 // ======================
-// MANEJO DE FERIADOS
+// CONSULTA DE FERIADOS (SOLO LECTURA)
 // ======================
-
-function guardarFeriados() {
-    localStorage.setItem("feriados", JSON.stringify(feriados));
-}
-
 function mostrarFeriados() {
     const lista = document.getElementById("listaFeriados");
     lista.innerHTML = "";
-
-    feriados.sort().forEach((fecha, indice) => {
+    feriados.forEach((fecha) => {
         const li = document.createElement("li");
         li.style.marginBottom = "5px";
-        li.innerHTML = `📅 ${fecha} <button onclick="eliminarFeriado(${indice})" style="margin-left: 10px; padding: 2px 8px; font-size: 12px; background: #e74c3c; color: white; border: none; border-radius: 3px; cursor: pointer;">Eliminar</button>`;
+        li.textContent = `📅 ${fecha}`;
         lista.appendChild(li);
     });
-}
-
-function agregarFeriado() {
-    const fecha = document.getElementById("nuevoFeriado").value;
-    if (!fecha) return;
-
-    if (!feriados.includes(fecha)) {
-        feriados.push(fecha);
-        guardarFeriados();
-        mostrarFeriados();
-    }
-    document.getElementById("nuevoFeriado").value = "";
-}
-
-function eliminarFeriado(indice) {
-    feriados.splice(indice, 1);
-    guardarFeriados();
-    mostrarFeriados();
-}
-
-function restablecerFeriados() {
-    if(confirm("¿Seguro que querés restablecer los feriados de origen?")) {
-        feriados = [...feriadosBase];
-        guardarFeriados();
-        mostrarFeriados();
-    }
 }
 
 window.onload = function() {
